@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2f6b33">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Areca Tracker">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Areca Farm Tracker</title>
+<style>
+  :root {
+    /* neutrals carry a faint green bias so they sit with the accent */
+    --bg:            #f4f6f1;
+    --surface:       #ffffff;
+    --surface-2:     #fafbf8;
+    --border:        #e2e7dc;
+    --border-strong: #cfd6c8;
+    --text:          #171a15;
+    --muted:         #5f665a;
+    --faint:         #6e7568;
+
+    --green:      #2f6b33;
+    --green-soft: #eaf2e8;
+    --amber:      #a86400;
+    --amber-soft: #fdf1de;
+    --red:        #b3352c;
+    --red-soft:   #fdecea;
+    --blue:       #1f5f9e;
+
+    --focus: rgba(47,107,51,0.18);
+    --shadow: 0 1px 2px rgba(23,26,21,0.05), 0 2px 10px rgba(23,26,21,0.04);
+    --nav-bg: #ffffff;
+  }
+
+  :root[data-theme="dark"] {
+    --bg:            #14171310;
+    --bg:            #131612;
+    --surface:       #1c201a;
+    --surface-2:     #222720;
+    --border:        #2f352c;
+    --border-strong: #3d453a;
+    --text:          #e8ece6;
+    --muted:         #a2aa9c;
+    --faint:         #98a092;
+
+    --green:      #7cc47f;
+    --green-soft: #1d2a1c;
+    --amber:      #e0a458;
+    --amber-soft: #2c2317;
+    --red:        #e8837a;
+    --red-soft:   #2e1d1b;
+    --blue:       #7fb2e0;
+
+    --focus: rgba(124,196,127,0.22);
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 2px 12px rgba(0,0,0,0.25);
+    --nav-bg: #181c17;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: Roboto, 'Noto Sans Kannada', system-ui, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 560px;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: contain;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+    line-height: 1.45;
+  }
+
+  button, input, select { font-family: inherit; }
+  button { touch-action: manipulation; cursor: pointer; }
+
+  /* ── Header ───────────────────────────────── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--green);
+    color: #fff;
+    padding: 14px 16px;
+    padding-top: calc(14px + env(safe-area-inset-top));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  :root[data-theme="dark"] header { background: #1d2a1c; color: var(--text); }
+
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand .mark { font-size: 21px; flex-shrink: 0; }
+  .brand h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hbtns { display: flex; gap: 6px; flex-shrink: 0; }
+  .hbtn {
+    min-width: 38px;
+    height: 38px;
+    padding: 0 11px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.16);
+    color: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  :root[data-theme="dark"] .hbtn { background: rgba(255,255,255,0.09); }
+  .hbtn:active { background: rgba(255,255,255,0.3); }
+
+  /* ── Page & cards ─────────────────────────── */
+  .page { display: none; padding: 14px; }
+  .page.on { display: block; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .card-body { padding: 16px; }
+  .card-body + .card-body { border-top: 1px solid var(--border); }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    padding: 16px 18px 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  /* numbered step badge — shows the order to work through the page */
+  .card-title .step {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+  }
+  :root[data-theme="dark"] .card-title .step { color: #10160f; }
+  .card-title + .card-body { padding-top: 14px; }
+
+  .hint { font-size: 14.5px; color: var(--muted); margin-bottom: 14px; }
+
+  /* ── Fields ───────────────────────────────── */
+  .field + .field { margin-top: 18px; }
+  .field > label {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 7px;
+  }
+  .field .sub { display: block; font-size: 13.5px; font-weight: 400; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+
+  input[type=text], input[type=number], input[type=date], select {
+    width: 100%;
+    min-height: 54px;
+    padding: 13px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px var(--focus);
+    background: var(--surface);
+  }
+  input::placeholder { color: var(--faint); }
+
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+  select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 19px) calc(50% + 2px), calc(100% - 14px) calc(50% + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+
+  /* an input with a unit suffix */
+  .with-unit { position: relative; }
+  .with-unit input { padding-right: 46px; }
+  .with-unit .unit {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  /* ── Buttons ──────────────────────────────── */
+  .btn {
+    min-height: 54px;
+    padding: 13px 18px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 16.5px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: filter 0.15s, transform 0.06s;
+  }
+  .btn:active { transform: scale(0.985); }
+  .btn-block { width: 100%; }
+
+  .btn-primary { background: var(--green); color: #fff; }
+  :root[data-theme="dark"] .btn-primary { background: var(--green); color: #10160f; }
+  .btn-quiet {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .btn-link {
+    background: none;
+    border: none;
+    color: var(--red);
+    font-size: 15px;
+    font-weight: 600;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+  .btn-link:active { background: var(--red-soft); }
+  .btn-sm { min-height: 44px; padding: 9px 15px; font-size: 15px; }
+
+  @media (hover: hover) {
+    .btn-primary:hover { filter: brightness(1.07); }
+    .btn-quiet:hover { border-color: var(--muted); }
+  }
+
+  /* ── Stat rows (the key numbers) ──────────── */
+  .stat {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 0;
+  }
+  .stat + .stat { border-top: 1px solid var(--border); }
+  .stat .k { font-size: 15.5px; color: var(--muted); }
+  .stat .v {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+  }
+  .v.green { color: var(--green); }
+  .v.amber { color: var(--amber); }
+  .v.red   { color: var(--red); }
+
+  /* the single most important figure on a page */
+  .headline {
+    background: var(--green);
+    color: #fff;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  :root[data-theme="dark"] .headline { background: #1d2a1c; }
+  .headline .k { font-size: 14.5px; opacity: 0.92; font-weight: 600; }
+  .headline .v {
+    font-size: 34px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  /* ── Land entry rows ──────────────────────── */
+  .land { padding: 16px 18px; }
+  .land + .land { border-top: 1px solid var(--border); }
+
+  .land-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .land-name input {
+    min-height: 40px;
+    padding: 6px 0;
+    border: none;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    background: none;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .land-name input:focus {
+    box-shadow: none;
+    border-bottom-color: var(--green);
+    background: none;
+  }
+  .land-name .x {
+    background: none;
+    border: none;
+    color: var(--faint);
+    font-size: 17px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .land-name .x:active { background: var(--red-soft); color: var(--red); }
+
+  /* fresh input  →  dried result, relationship shown explicitly */
+  .land-calc {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .land-calc .qty { flex: 1; min-width: 0; max-width: 190px; }
+  .land-calc .arrow {
+    color: var(--faint);
+    font-size: 19px;
+    flex-shrink: 0;
+  }
+  .land-calc .out { flex: 1; min-width: 0; }
+  .land-calc .out .num {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+  }
+  .land-calc .out .cap {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .land-calc.empty-row .out .num { color: var(--faint); }
+
+  /* ── Records / lists ──────────────────────── */
+  .rec { padding: 16px 18px; }
+  .rec + .rec { border-top: 1px solid var(--border); }
+  .rec-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .rec-name { font-size: 17px; font-weight: 700; }
+  .rec-meta { font-size: 14px; color: var(--muted); }
+  .rec-actions { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
+
+  table.t { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  table.t th, table.t td {
+    padding: 10px 0;
+    text-align: left;
+    font-size: 15px;
+    border-bottom: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+  }
+  table.t th {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  table.t .n { text-align: right; white-space: nowrap; }
+  table.t tfoot td {
+    font-weight: 700;
+    border-bottom: none;
+    border-top: 1.5px solid var(--border-strong);
+    padding-top: 10px;
+  }
+
+  /* expense line */
+  .exp { display: flex; align-items: center; gap: 12px; padding: 15px 18px; }
+  .exp + .exp { border-top: 1px solid var(--border); }
+  .exp .body { flex: 1; min-width: 0; }
+  .exp .name { font-size: 16px; font-weight: 600; }
+  .exp .meta { font-size: 13.5px; color: var(--muted); margin-top: 2px; }
+  .exp .amt {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .exp .x {
+    background: none; border: none; color: var(--faint);
+    width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; font-size: 16px;
+  }
+  .exp .x:active { background: var(--red-soft); color: var(--red); }
+
+  /* bars */
+  .bar { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .bar + .bar { border-top: 1px solid var(--border); }
+  .bar .lbl { width: 92px; font-size: 14px; color: var(--muted); flex-shrink: 0; }
+  .bar .track { flex: 1; height: 10px; border-radius: 5px; background: var(--border); overflow: hidden; }
+  .bar .fill { height: 100%; border-radius: 5px; background: var(--green); }
+  .bar .fill.amber { background: var(--amber); }
+  .bar .val {
+    width: 92px; text-align: right; font-size: 14.5px; font-weight: 700;
+    font-variant-numeric: tabular-nums; flex-shrink: 0;
+  }
+
+  .empty { padding: 36px 20px; text-align: center; color: var(--muted); font-size: 15.5px; }
+  .empty .ico { font-size: 30px; display: block; margin-bottom: 8px; opacity: 0.5; }
+
+  /* ── Bottom navigation ────────────────────── */
+  nav {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 140;
+    display: flex;
+    max-width: 560px;
+    margin: 0 auto;
+    background: var(--nav-bg);
+    border-top: 1px solid var(--border);
+    padding: 5px 4px calc(5px + env(safe-area-inset-bottom));
+  }
+  nav button {
+    flex: 1;
+    min-height: 54px;
+    border: none;
+    background: none;
+    color: var(--faint);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  nav .ni {
+    font-size: 19px;
+    line-height: 1;
+    padding: 4px 16px;
+    border-radius: 14px;
+    transition: background 0.18s;
+  }
+  nav .nt { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  nav button.on { color: var(--green); }
+  nav button.on .ni { background: var(--green-soft); }
+
+  /* ── Calculator ───────────────────────────── */
+  .fabwrap {
+    position: fixed;
+    left: 0; right: 0;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    max-width: 560px;
+    margin: 0 auto;
+    padding-right: 16px;
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+    z-index: 130;
+  }
+  .fab {
+    pointer-events: auto;
+    width: 52px; height: 52px;
+    border: none; border-radius: 16px;
+    background: var(--green);
+    color: #fff;
+    font-size: 21px;
+    box-shadow: 0 4px 14px rgba(23,40,22,0.3);
+  }
+  :root[data-theme="dark"] .fab { color: #10160f; }
+  .fab:active { transform: scale(0.94); }
+
+  .modal {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,14,9,0.55);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal.on { display: flex; }
+  @media (min-width: 480px) { .modal { align-items: center; } }
+
+  .calc {
+    width: 100%;
+    max-width: 400px;
+    background: var(--surface);
+    border-radius: 18px 18px 0 0;
+    overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  @media (min-width: 480px) { .calc { border-radius: 18px; } }
+
+  .calc-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .calc-bar span { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+  .calc-bar button { background: none; border: none; color: var(--muted); font-size: 15px; width: 34px; height: 34px; border-radius: 8px; }
+
+  .calc-out { padding: 16px; text-align: right; background: var(--surface-2); }
+  .calc-out .sub { font-size: 13px; color: var(--faint); min-height: 18px; font-variant-numeric: tabular-nums; }
+  .calc-out .main {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums; word-break: break-all; line-height: 1.2;
+  }
+
+  .keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; }
+  .k {
+    min-height: 54px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 600;
+  }
+  .k:active { background: var(--border); transform: scale(0.96); }
+  .k.f { color: var(--muted); }
+  .k.o { color: var(--green); font-size: 21px; font-weight: 700; }
+  .k.e { background: var(--green); color: #fff; border-color: transparent; }
+  :root[data-theme="dark"] .k.e { color: #10160f; }
+
+  /* ── Toast ────────────────────────────────── */
+  .toast {
+    position: fixed;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(14px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 500;
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s, transform 0.22s;
+    max-width: 88%;
+    text-align: center;
+  }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  @media (max-width: 359px) {
+    nav button { font-size: 10px; }
+    nav .ni { padding: 4px 11px; }
+    .brand h1 { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="mark">🌴</span>
+    <h1 id="appTitle">Areca Farm Tracker</h1>
+  </div>
+  <div class="hbtns">
+    <button class="hbtn" id="installBtn" style="display:none" onclick="installApp()" title="Install">⬇</button>
+    <button class="hbtn" onclick="openCalc()" aria-label="Calculator" title="Calculator">🧮</button>
+    <button class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="Theme">🌙</button>
+    <button class="hbtn" id="langBtn" onclick="toggleLanguage()">ಕನ್ನಡ</button>
+  </div>
+</header>
+
+<!-- ══ LANDS ══ -->
+<div id="page-lands" class="page on">
+  <div class="card">
+    <div class="card-title"><span class="step">1</span><span data-i18n="setupTitle">This Harvest</span></div>
+    <div class="card-body">
+      <div class="field">
+        <label data-i18n="harvestDate">Harvest date</label>
+        <input type="date" id="harvestDate">
+      </div>
+      <div class="field">
+        <label>
+          <span data-i18n="rateLabelShort">Drying rate</span>
+          <span class="sub" data-i18n="rateHelp">Dried kg you get from every 100 kg of fresh areca — same for all lands</span>
+        </label>
+        <div class="with-unit">
+          <input type="number" step="0.5" min="0" id="globalRateInput" placeholder="0" oninput="updateGlobalRate(this)">
+          <span class="unit">kg</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>
+          <span data-i18n="priceLabelShort">Price of dried areca</span>
+          <span class="sub" data-i18n="priceHelp">Rate per 100 kg</span>
+        </label>
+        <div class="with-unit">
+          <input type="number" step="1" min="0" id="priceInput" placeholder="0" oninput="updatePrice(this)">
+          <span class="unit">₹</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="step">2</span><span data-i18n="freshByLand">Fresh Areca by Land</span></div>
+    <div id="landsList"></div>
+    <div class="card-body">
+      <button onclick="addLand()" class="btn btn-quiet btn-block" data-i18n="addLand">+ Add land</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="step">3</span><span data-i18n="checkSave">Check &amp; Save</span></div>
+    <div class="card-body" style="padding-top:4px;padding-bottom:4px">
+      <div class="stat">
+        <span class="k" data-i18n="totalFresh">Total fresh areca</span>
+        <span class="v" id="curFreshVal">0 kg</span>
+      </div>
+      <div class="stat">
+        <span class="k" data-i18n="totalDried">Total dried areca</span>
+        <span class="v amber" id="curDriedVal">0 kg</span>
+      </div>
+    </div>
+    <div class="headline">
+      <span class="k" data-i18n="totalValue">Value of this harvest</span>
+      <span class="v" id="curValueVal">₹0</span>
+    </div>
+    <div class="card-body">
+      <button onclick="saveHarvest()" class="btn btn-primary btn-block" data-i18n="saveYield">Save this harvest</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EXPENSES ══ -->
+<div id="page-expenses" class="page">
+  <div class="card">
+    <div class="card-title" data-i18n="addExpense">Add Expense</div>
+    <div class="card-body">
+      <div class="field">
+        <label data-i18n="expenseDate">Date</label>
+        <input type="date" id="expDate">
+      </div>
+      <div class="field">
+        <label data-i18n="expenseType">Spent on</label>
+        <select id="expCategory"></select>
+      </div>
+      <div class="field">
+        <label data-i18n="expenseLand">Land</label>
+        <select id="expLand"></select>
+      </div>
+      <div class="field">
+        <label data-i18n="expenseAmount">Amount</label>
+        <div class="with-unit">
+          <input type="number" step="1" min="0" id="expAmount" placeholder="0">
+          <span class="unit">₹</span>
+        </div>
+      </div>
+      <div class="field">
+        <label data-i18n="expenseNote">Note</label>
+        <input type="text" id="expNote" placeholder="—">
+      </div>
+      <button onclick="addExpense()" class="btn btn-primary btn-block" style="margin-top:16px" data-i18n="saveExpense">Save expense</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-i18n="expenseSummary">Where Money Went</div>
+    <div class="card-body" id="expByCategory"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-i18n="expenseList">All Expenses</div>
+    <div id="expensesList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-i18n="finalTitle">Final Amount</div>
+    <div class="card-body" style="padding-top:6px;padding-bottom:6px">
+      <div class="stat">
+        <span class="k" data-i18n="income">Income from all harvests</span>
+        <span class="v green" id="finIncome">₹0</span>
+      </div>
+      <div class="stat">
+        <span class="k" data-i18n="minusExpenses">Less: total expenses</span>
+        <span class="v red" id="finExpenses">₹0</span>
+      </div>
+    </div>
+    <div class="headline">
+      <span class="k" data-i18n="finalAmount">What you keep</span>
+      <span class="v" id="finProfit">₹0</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RECORDS ══ -->
+<div id="page-details" class="page">
+  <div id="detailsContent"></div>
+</div>
+
+<!-- ══ REPORTS ══ -->
+<div id="page-reports" class="page">
+  <div id="reportsContent"></div>
+</div>
+
+<nav>
+  <button class="on" onclick="switchTab('lands', this)">
+    <span class="ni">🌴</span><span class="nt" data-i18n="landsTab">Lands</span>
+  </button>
+  <button onclick="switchTab('expenses', this)">
+    <span class="ni">🧾</span><span class="nt" data-i18n="expensesTab">Expenses</span>
+  </button>
+  <button onclick="switchTab('details', this)">
+    <span class="ni">📋</span><span class="nt" data-i18n="detailsTab">Records</span>
+  </button>
+  <button onclick="switchTab('reports', this)">
+    <span class="ni">📊</span><span class="nt" data-i18n="reportsTab">Reports</span>
+  </button>
+</nav>
+
+<div class="fabwrap">
+  <button class="fab" onclick="openCalc()" aria-label="Calculator">🧮</button>
+</div>
+
+<div class="modal" id="calcOverlay" onclick="if(event.target===this)closeCalc()">
+  <div class="calc" role="dialog" aria-modal="true">
+    <div class="calc-bar">
+      <span data-i18n="calculator">Calculator</span>
+      <button onclick="closeCalc()" aria-label="Close">✕</button>
+    </div>
+    <div class="calc-out">
+      <div class="sub" id="calcSub">&nbsp;</div>
+      <div class="main" id="calcMain">0</div>
+    </div>
+    <div class="keys">
+      <button class="k f" onclick="calcClear()">C</button>
+      <button class="k f" onclick="calcSign()">±</button>
+      <button class="k f" onclick="calcPercent()">%</button>
+      <button class="k o" onclick="calcOp('/')">÷</button>
+      <button class="k" onclick="calcDigit('7')">7</button>
+      <button class="k" onclick="calcDigit('8')">8</button>
+      <button class="k" onclick="calcDigit('9')">9</button>
+      <button class="k o" onclick="calcOp('*')">×</button>
+      <button class="k" onclick="calcDigit('4')">4</button>
+      <button class="k" onclick="calcDigit('5')">5</button>
+      <button class="k" onclick="calcDigit('6')">6</button>
+      <button class="k o" onclick="calcOp('-')">−</button>
+      <button class="k" onclick="calcDigit('1')">1</button>
+      <button class="k" onclick="calcDigit('2')">2</button>
+      <button class="k" onclick="calcDigit('3')">3</button>
+      <button class="k o" onclick="calcOp('+')">+</button>
+      <button class="k" onclick="calcDigit('0')">0</button>
+      <button class="k" onclick="calcDot()">.</button>
+      <button class="k f" onclick="calcBack()">⌫</button>
+      <button class="k e" onclick="calcEquals()">=</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const i18n = {
+  en: {
+    appTitle: 'Areca Farm Tracker',
+    langBtn: 'ಕನ್ನಡ',
+    landsTab: 'Lands', expensesTab: 'Expenses', detailsTab: 'Records', reportsTab: 'Reports',
+    setupTitle: 'This Harvest',
+    harvestDate: 'Harvest date',
+    rateLabelShort: 'Drying rate',
+    rateHelp: 'Dried kg you get from every 100 kg of fresh areca — same for all lands',
+    priceLabelShort: 'Price of dried areca',
+    priceHelp: 'Rate per 100 kg',
+    freshByLand: 'Fresh Areca by Land',
+    checkSave: 'Check & Save',
+    land: 'Land',
+    driedShort: 'dried',
+    addLand: '+ Add land',
+    totalFresh: 'Total fresh areca',
+    totalDried: 'Total dried areca',
+    totalValue: 'Value of this harvest',
+    saveYield: 'Save this harvest',
+    yield: 'Harvest',
+    saved: 'saved',
+    pickDate: 'Please choose a date.',
+    enterQty: 'Enter areca quantity for at least one land.',
+    deleteLandConfirm: 'Remove this land?',
+    landDeleted: 'Land removed',
+    deleteConfirm: 'Delete this record?',
+    yieldDeleted: 'Harvest deleted',
+    yieldUpdated: 'Harvest updated',
+    detailsTitle: 'Harvest Records',
+    colLand: 'Land', colFresh: 'Fresh kg', colDried: 'Dried kg', colValue: 'Value',
+    rateLabel: 'Drying rate', totalRow: 'Total',
+    edit: 'Edit', save: 'Save', cancel: 'Cancel', delete: 'Delete',
+    grandTotal: 'All harvests together',
+    noYields: 'No harvests saved yet.',
+    noYieldsSub: 'Record one on the Lands page.',
+    kg: 'kg',
+    addExpense: 'Add Expense',
+    expenseDate: 'Date', expenseType: 'Spent on', expenseLand: 'Land',
+    expenseAmount: 'Amount', expenseNote: 'Note',
+    saveExpense: 'Save expense',
+    expenseSummary: 'Where Money Went',
+    expenseList: 'All Expenses',
+    totalExpenses: 'Total expenses',
+    allLands: 'All lands',
+    catFertilizer: 'Fertilizer', catLabour: 'Labour', catPesticide: 'Pesticide / spray',
+    catTransport: 'Transport', catWater: 'Water / electricity', catEquipment: 'Equipment', catOther: 'Other',
+    expenseSaved: 'Expense saved', expenseDeleted: 'Expense deleted',
+    enterAmount: 'Please enter an amount.',
+    noExpenses: 'No expenses recorded yet.',
+    finalTitle: 'Final Amount',
+    income: 'Income from all harvests',
+    minusExpenses: 'Less: total expenses',
+    finalAmount: 'What you keep',
+    reportsTitle: 'Reports',
+    yearSummary: 'By Year',
+    harvestsWord: 'harvests',
+    driedByYield: 'Dried Areca per Harvest',
+    profitSummary: 'Money Summary',
+    calculator: 'Calculator',
+    installApp: 'Install',
+  },
+  kn: {
+    appTitle: 'ಅಡಿಕೆ ಫಾರ್ಮ್ ಟ್ರ್ಯಾಕರ್',
+    langBtn: 'English',
+    landsTab: 'ಜಮೀನು', expensesTab: 'ಖರ್ಚು', detailsTab: 'ದಾಖಲೆ', reportsTab: 'ವರದಿ',
+    setupTitle: 'ಈ ಕೊಯ್ಲು',
+    harvestDate: 'ಕೊಯ್ಲಿನ ದಿನಾಂಕ',
+    rateLabelShort: 'ಒಣಗಿಸುವ ದರ',
+    rateHelp: 'ಪ್ರತಿ 100 ಕೆಜಿ ಹಸಿ ಅಡಿಕೆಯಿಂದ ಸಿಗುವ ಒಣ ಅಡಿಕೆ (ಕೆಜಿ) — ಎಲ್ಲಾ ಜಮೀನುಗಳಿಗೆ ಒಂದೇ',
+    priceLabelShort: 'ಒಣ ಅಡಿಕೆಯ ಬೆಲೆ',
+    priceHelp: 'ಪ್ರತಿ 100 ಕೆಜಿಗೆ ದರ',
+    freshByLand: 'ಜಮೀನುವಾರು ಹಸಿ ಅಡಿಕೆ',
+    checkSave: 'ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಉಳಿಸಿ',
+    land: 'ಜಮೀನು',
+    driedShort: 'ಒಣ',
+    addLand: '+ ಜಮೀನು ಸೇರಿಸಿ',
+    totalFresh: 'ಒಟ್ಟು ಹಸಿ ಅಡಿಕೆ',
+    totalDried: 'ಒಟ್ಟು ಒಣ ಅಡಿಕೆ',
+    totalValue: 'ಈ ಕೊಯ್ಲಿನ ಮೌಲ್ಯ',
+    saveYield: 'ಈ ಕೊಯ್ಲು ಉಳಿಸಿ',
+    yield: 'ಕೊಯ್ಲು',
+    saved: 'ಉಳಿಸಲಾಗಿದೆ',
+    pickDate: 'ದಯವಿಟ್ಟು ದಿನಾಂಕ ಆರಿಸಿ.',
+    enterQty: 'ಕನಿಷ್ಠ ಒಂದು ಜಮೀನಿಗೆ ಅಡಿಕೆ ಪ್ರಮಾಣ ನಮೂದಿಸಿ.',
+    deleteLandConfirm: 'ಈ ಜಮೀನು ತೆಗೆಯುವುದೇ?',
+    landDeleted: 'ಜಮೀನು ತೆಗೆಯಲಾಗಿದೆ',
+    deleteConfirm: 'ಈ ದಾಖಲೆ ಅಳಿಸುವುದೇ?',
+    yieldDeleted: 'ಕೊಯ್ಲು ಅಳಿಸಲಾಗಿದೆ',
+    yieldUpdated: 'ಕೊಯ್ಲು ನವೀಕರಿಸಲಾಗಿದೆ',
+    detailsTitle: 'ಕೊಯ್ಲಿನ ದಾಖಲೆಗಳು',
+    colLand: 'ಜಮೀನು', colFresh: 'ಹಸಿ ಕೆಜಿ', colDried: 'ಒಣ ಕೆಜಿ', colValue: 'ಮೌಲ್ಯ',
+    rateLabel: 'ಒಣಗಿಸುವ ದರ', totalRow: 'ಒಟ್ಟು',
+    edit: 'ಸಂಪಾದಿಸಿ', save: 'ಉಳಿಸಿ', cancel: 'ರದ್ದು', delete: 'ಅಳಿಸಿ',
+    grandTotal: 'ಎಲ್ಲಾ ಕೊಯ್ಲುಗಳು ಒಟ್ಟಾಗಿ',
+    noYields: 'ಇನ್ನೂ ಕೊಯ್ಲು ಉಳಿಸಿಲ್ಲ.',
+    noYieldsSub: 'ಜಮೀನು ಪುಟದಲ್ಲಿ ದಾಖಲಿಸಿ.',
+    kg: 'ಕೆಜಿ',
+    addExpense: 'ಖರ್ಚು ಸೇರಿಸಿ',
+    expenseDate: 'ದಿನಾಂಕ', expenseType: 'ಯಾವುದಕ್ಕೆ', expenseLand: 'ಜಮೀನು',
+    expenseAmount: 'ಮೊತ್ತ', expenseNote: 'ಟಿಪ್ಪಣಿ',
+    saveExpense: 'ಖರ್ಚು ಉಳಿಸಿ',
+    expenseSummary: 'ಹಣ ಎಲ್ಲಿ ಹೋಯಿತು',
+    expenseList: 'ಎಲ್ಲಾ ಖರ್ಚುಗಳು',
+    totalExpenses: 'ಒಟ್ಟು ಖರ್ಚು',
+    allLands: 'ಎಲ್ಲಾ ಜಮೀನುಗಳು',
+    catFertilizer: 'ಗೊಬ್ಬರ', catLabour: 'ಕೂಲಿ', catPesticide: 'ಔಷಧಿ / ಸಿಂಪಡಣೆ',
+    catTransport: 'ಸಾಗಾಣಿಕೆ', catWater: 'ನೀರು / ವಿದ್ಯುತ್', catEquipment: 'ಸಲಕರಣೆ', catOther: 'ಇತರೆ',
+    expenseSaved: 'ಖರ್ಚು ಉಳಿಸಲಾಗಿದೆ', expenseDeleted: 'ಖರ್ಚು ಅಳಿಸಲಾಗಿದೆ',
+    enterAmount: 'ದಯವಿಟ್ಟು ಮೊತ್ತ ನಮೂದಿಸಿ.',
+    noExpenses: 'ಇನ್ನೂ ಖರ್ಚು ದಾಖಲಿಸಿಲ್ಲ.',
+    finalTitle: 'ಅಂತಿಮ ಮೊತ್ತ',
+    income: 'ಎಲ್ಲಾ ಕೊಯ್ಲಿನ ಆದಾಯ',
+    minusExpenses: 'ಕಳೆದು: ಒಟ್ಟು ಖರ್ಚು',
+    finalAmount: 'ಉಳಿಯುವ ಮೊತ್ತ',
+    reportsTitle: 'ವರದಿಗಳು',
+    yearSummary: 'ವರ್ಷವಾರು',
+    harvestsWord: 'ಕೊಯ್ಲುಗಳು',
+    driedByYield: 'ಕೊಯ್ಲುವಾರು ಒಣ ಅಡಿಕೆ',
+    profitSummary: 'ಹಣದ ಸಾರಾಂಶ',
+    calculator: 'ಕ್ಯಾಲ್ಕುಲೇಟರ್',
+    installApp: 'ಇನ್‌ಸ್ಟಾಲ್',
+  }
+};
+
+let currentLang = localStorage.getItem('areca_lang') || 'en';
+let globalRate = localStorage.getItem('areca_rate') || '';
+let price = localStorage.getItem('areca_price') || '';
+const editingHarvests = new Set();
+
+let lands;
+const storedLands = localStorage.getItem('areca_lands');
+if (storedLands === null) {
+  lands = [];
+  for (let i = 0; i < 6; i++) lands.push({ id: (Date.now() + i).toString(), name: '', fresh: '' });
+  localStorage.setItem('areca_lands', JSON.stringify(lands));
+} else {
+  lands = JSON.parse(storedLands);
+}
+
+let harvests = JSON.parse(localStorage.getItem('areca_harvests') || '[]');
+let expenses = JSON.parse(localStorage.getItem('areca_expenses') || '[]');
+
+const EXPENSE_CATEGORIES = ['fertilizer', 'labour', 'pesticide', 'transport', 'water', 'equipment', 'other'];
+const CATEGORY_KEY = {
+  fertilizer: 'catFertilizer', labour: 'catLabour', pesticide: 'catPesticide',
+  transport: 'catTransport', water: 'catWater', equipment: 'catEquipment', other: 'catOther'
+};
+
+function t(k) { return i18n[currentLang][k] || k; }
+function num(x) { return parseFloat(x) || 0; }
+function fmtNum(n) { return n.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+function fmtKg(n) { return fmtNum(n) + ' ' + t('kg'); }
+function fmtMoney(n) { return (n < 0 ? '− ₹' : '₹') + fmtNum(Math.abs(n)); }
+function valueOf(driedKg, pricePer100) { return driedKg / 100 * num(pricePer100); }
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function escAttr(s) { return escHtml(s).replace(/"/g, '&quot;'); }
+
+function saveLands() { localStorage.setItem('areca_lands', JSON.stringify(lands)); }
+function saveHarvests() { localStorage.setItem('areca_harvests', JSON.stringify(harvests)); }
+function saveExpenses() { localStorage.setItem('areca_expenses', JSON.stringify(expenses)); }
+
+function ordinal(n) {
+  if (currentLang === 'kn') return n + 'ನೇ';
+  const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+function yieldLabel(n) { return ordinal(n) + ' ' + t('yield'); }
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString(currentLang === 'kn' ? 'kn-IN' : 'en-IN',
+    { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/* ── theme ─────────────────────────────────── */
+let theme = localStorage.getItem('areca_theme') ||
+  ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', theme);
+  const b = document.getElementById('themeBtn');
+  if (b) b.textContent = (theme === 'dark') ? '☀️' : '🌙';
+  const m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', theme === 'dark' ? '#1d2a1c' : '#2f6b33');
+}
+function toggleTheme() {
+  theme = (theme === 'dark') ? 'light' : 'dark';
+  localStorage.setItem('areca_theme', theme);
+  applyTheme();
+}
+
+/* ── language & tabs ───────────────────────── */
+function toggleLanguage() {
+  currentLang = currentLang === 'en' ? 'kn' : 'en';
+  localStorage.setItem('areca_lang', currentLang);
+  applyLanguage();
+}
+
+function applyLanguage() {
+  document.getElementById('appTitle').textContent = t('appTitle');
+  document.getElementById('langBtn').textContent = t('langBtn');
+  document.querySelectorAll('[data-i18n]').forEach(function (el) {
+    el.textContent = t(el.dataset.i18n);
+  });
+  renderLands();
+  renderExpenses();
+  renderDetails();
+  renderReports();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('on'); });
+  document.querySelectorAll('nav button').forEach(function (b) { b.classList.remove('on'); });
+  document.getElementById('page-' + name).classList.add('on');
+  btn.classList.add('on');
+  window.scrollTo(0, 0);
+  if (name === 'expenses') renderExpenses();
+  if (name === 'details') renderDetails();
+  if (name === 'reports') renderReports();
+}
+
+function landName(l, i) {
+  return (l.name && l.name.trim()) ? l.name : (t('land') + ' ' + (i + 1));
+}
+
+/* ── lands ─────────────────────────────────── */
+function driedCell(kg) {
+  return '<span class="num">' + fmtKg(kg) + '</span><span class="cap">' + escHtml(t('driedShort')) + '</span>';
+}
+
+function renderLands() {
+  document.getElementById('landsList').innerHTML = lands.map(function (l, i) {
+    const fresh = num(l.fresh);
+    const dried = fresh * num(globalRate) / 100;
+    return '<div class="land">' +
+      '<div class="land-name">' +
+        '<input type="text" value="' + escAttr(l.name || '') + '" placeholder="' + escAttr(t('land') + ' ' + (i + 1)) + '" oninput="updateLandField(\'' + l.id + '\',\'name\',this)">' +
+        '<button class="x" onclick="deleteLand(\'' + l.id + '\')" aria-label="' + escAttr(t('delete')) + '">✕</button>' +
+      '</div>' +
+      '<div class="land-calc' + (dried > 0 ? '' : ' empty-row') + '" id="calc-' + l.id + '">' +
+        '<span class="qty with-unit">' +
+          '<input type="number" step="0.5" min="0" value="' + escAttr(l.fresh) + '" placeholder="0" oninput="updateLandField(\'' + l.id + '\',\'fresh\',this)">' +
+          '<span class="unit">kg</span>' +
+        '</span>' +
+        '<span class="arrow">→</span>' +
+        '<span class="out" id="dried-' + l.id + '">' + driedCell(dried) + '</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  updateLandTotals();
+}
+
+function refreshDried(id, dried) {
+  const e = document.getElementById('dried-' + id);
+  if (e) e.innerHTML = driedCell(dried);
+  const row = document.getElementById('calc-' + id);
+  if (row) row.classList.toggle('empty-row', !(dried > 0));
+}
+
+function updateGlobalRate(el) {
+  globalRate = el.value;
+  localStorage.setItem('areca_rate', globalRate);
+  lands.forEach(function (l) {
+    refreshDried(l.id, num(l.fresh) * num(globalRate) / 100);
+  });
+  updateLandTotals();
+}
+
+function updatePrice(el) {
+  price = el.value;
+  localStorage.setItem('areca_price', price);
+  updateLandTotals();
+}
+
+function updateLandField(id, field, el) {
+  const l = lands.find(function (x) { return x.id === id; });
+  if (!l) return;
+  l[field] = el.value;
+  saveLands();
+  if (field === 'fresh') {
+    refreshDried(id, num(l.fresh) * num(globalRate) / 100);
+    updateLandTotals();
+  }
+}
+
+function updateLandTotals() {
+  let f = 0, d = 0;
+  const rate = num(globalRate);
+  lands.forEach(function (l) { const x = num(l.fresh); f += x; d += x * rate / 100; });
+  document.getElementById('curFreshVal').textContent = fmtKg(f);
+  document.getElementById('curDriedVal').textContent = fmtKg(d);
+  document.getElementById('curValueVal').textContent = fmtMoney(valueOf(d, price));
+}
+
+function addLand() {
+  lands.push({ id: Date.now().toString(), name: '', fresh: '' });
+  saveLands();
+  renderLands();
+}
+
+function deleteLand(id) {
+  if (!window.confirm(t('deleteLandConfirm'))) return;
+  lands = lands.filter(function (l) { return l.id !== id; });
+  saveLands();
+  renderLands();
+  showToast(t('landDeleted'));
+}
+
+function saveHarvest() {
+  const date = document.getElementById('harvestDate').value;
+  if (!date) { showToast(t('pickDate')); return; }
+  const rate = num(globalRate);
+  const entries = [];
+  let tf = 0, td = 0;
+  lands.forEach(function (l, i) {
+    const f = num(l.fresh);
+    if (f > 0) {
+      const d = f * rate / 100;
+      entries.push({ name: landName(l, i), fresh: f, dried: d });
+      tf += f; td += d;
+    }
+  });
+  if (entries.length === 0) { showToast(t('enterQty')); return; }
+
+  const p = num(price);
+  const number = harvests.length + 1;
+  harvests.push({ id: Date.now().toString(), number: number, date: date, rate: rate, price: p,
+    entries: entries, totalFresh: tf, totalDried: td, totalValue: valueOf(td, p) });
+  saveHarvests();
+
+  lands.forEach(function (l) { l.fresh = ''; });
+  saveLands();
+  renderLands();
+  renderDetails();
+  renderReports();
+  showToast(yieldLabel(number) + ' ' + t('saved'));
+}
+
+/* ── records ───────────────────────────────── */
+function harvestValue(h) {
+  return (h.totalValue != null) ? h.totalValue : valueOf(num(h.totalDried), num(h.price));
+}
+
+function startEditHarvest(id) { editingHarvests.add(id); renderDetails(); }
+function cancelEditHarvest(id) { editingHarvests.delete(id); renderDetails(); }
+
+function saveHarvestEdit(id) {
+  const h = harvests.find(function (x) { return x.id === id; });
+  if (!h) return;
+  const date = document.getElementById('ed-' + id).value;
+  if (!date) { showToast(t('pickDate')); return; }
+  const rate = num(document.getElementById('er-' + id).value);
+  const p = num(document.getElementById('ep-' + id).value);
+  let tf = 0, td = 0;
+  h.entries.forEach(function (e, i) {
+    const f = num(document.getElementById('ef-' + id + '-' + i).value);
+    e.fresh = f; e.dried = f * rate / 100;
+    tf += f; td += e.dried;
+  });
+  h.date = date; h.rate = rate; h.price = p;
+  h.totalFresh = tf; h.totalDried = td; h.totalValue = valueOf(td, p);
+  saveHarvests();
+  editingHarvests.delete(id);
+  renderDetails();
+  renderReports();
+  showToast(t('yieldUpdated'));
+}
+
+function deleteHarvest(id) {
+  if (!window.confirm(t('deleteConfirm'))) return;
+  editingHarvests.delete(id);
+  harvests = harvests.filter(function (h) { return h.id !== id; });
+  harvests.forEach(function (h, i) { h.number = i + 1; });
+  saveHarvests();
+  renderDetails();
+  renderReports();
+  showToast(t('yieldDeleted'));
+}
+
+function renderDetails() {
+  const c = document.getElementById('detailsContent');
+  if (harvests.length === 0) {
+    c.innerHTML = '<div class="card"><div class="empty"><span class="ico">📋</span>' +
+      escHtml(t('noYields')) + '<br>' + escHtml(t('noYieldsSub')) + '</div></div>';
+    return;
+  }
+
+  let gf = 0, gd = 0, gv = 0;
+  let html = harvests.map(function (h) {
+    const hv = harvestValue(h);
+    gf += h.totalFresh; gd += h.totalDried; gv += hv;
+
+    if (editingHarvests.has(h.id)) {
+      const fields = h.entries.map(function (e, i) {
+        return '<div class="field"><label>' + escHtml(e.name) + '</label>' +
+          '<div class="with-unit"><input type="number" step="0.5" min="0" id="ef-' + h.id + '-' + i + '" value="' + e.fresh + '"><span class="unit">kg</span></div></div>';
+      }).join('');
+      return '<div class="card"><div class="card-title">' + escHtml(yieldLabel(h.number)) + '</div><div class="card-body">' +
+        '<div class="field"><label>' + escHtml(t('harvestDate')) + '</label><input type="date" id="ed-' + h.id + '" value="' + h.date + '"></div>' +
+        '<div class="field"><label>' + escHtml(t('rateLabel')) + '</label><div class="with-unit"><input type="number" step="0.5" min="0" id="er-' + h.id + '" value="' + (h.rate != null ? h.rate : '') + '"><span class="unit">kg</span></div></div>' +
+        '<div class="field"><label>' + escHtml(t('priceLabelShort')) + '</label><div class="with-unit"><input type="number" step="1" min="0" id="ep-' + h.id + '" value="' + (h.price != null ? h.price : '') + '"><span class="unit">₹</span></div></div>' +
+        fields +
+        '<div class="rec-actions">' +
+          '<button class="btn btn-primary" style="flex:1" onclick="saveHarvestEdit(\'' + h.id + '\')">' + escHtml(t('save')) + '</button>' +
+          '<button class="btn btn-quiet" style="flex:1" onclick="cancelEditHarvest(\'' + h.id + '\')">' + escHtml(t('cancel')) + '</button>' +
+        '</div></div></div>';
+    }
+
+    const rows = h.entries.map(function (e) {
+      return '<tr><td>' + escHtml(e.name) + '</td><td class="n">' + fmtNum(e.fresh) + '</td><td class="n">' + fmtNum(e.dried) + '</td></tr>';
+    }).join('');
+
+    return '<div class="card"><div class="rec">' +
+      '<div class="rec-top"><span class="rec-name">' + escHtml(yieldLabel(h.number)) + '</span>' +
+      '<span class="rec-meta">' + escHtml(formatDate(h.date)) + '</span></div>' +
+      '<div class="rec-meta">' + escHtml(t('rateLabel')) + ' ' + fmtNum(num(h.rate)) + ' ' + escHtml(t('kg')) + ' · ' + fmtMoney(num(h.price)) + ' / 100' + escHtml(t('kg')) + '</div>' +
+      '<table class="t"><thead><tr><th>' + escHtml(t('colLand')) + '</th><th class="n">' + escHtml(t('colFresh')) + '</th><th class="n">' + escHtml(t('colDried')) + '</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+      '<tfoot><tr><td>' + escHtml(t('totalRow')) + '</td><td class="n">' + fmtNum(h.totalFresh) + '</td><td class="n">' + fmtNum(h.totalDried) + '</td></tr></tfoot></table>' +
+      '<div class="stat"><span class="k">' + escHtml(t('colValue')) + '</span><span class="v green">' + fmtMoney(hv) + '</span></div>' +
+      '<div class="rec-actions">' +
+        '<button class="btn btn-quiet btn-sm" onclick="startEditHarvest(\'' + h.id + '\')">' + escHtml(t('edit')) + '</button>' +
+        '<button class="btn-link" onclick="deleteHarvest(\'' + h.id + '\')">' + escHtml(t('delete')) + '</button>' +
+      '</div></div></div>';
+  }).join('');
+
+  html += '<div class="card"><div class="card-title">' + escHtml(t('grandTotal')) + '</div>' +
+    '<div class="card-body" style="padding-top:6px;padding-bottom:6px">' +
+    '<div class="stat"><span class="k">' + escHtml(t('colFresh')) + '</span><span class="v">' + fmtKg(gf) + '</span></div>' +
+    '<div class="stat"><span class="k">' + escHtml(t('colDried')) + '</span><span class="v amber">' + fmtKg(gd) + '</span></div>' +
+    '</div><div class="headline"><span class="k">' + escHtml(t('colValue')) + '</span><span class="v">' + fmtMoney(gv) + '</span></div></div>';
+
+  c.innerHTML = html;
+}
+
+/* ── expenses ──────────────────────────────── */
+function totalIncome() { return harvests.reduce(function (s, h) { return s + harvestValue(h); }, 0); }
+function totalExpenses() { return expenses.reduce(function (s, e) { return s + num(e.amount); }, 0); }
+
+function renderExpenseForm() {
+  const cat = document.getElementById('expCategory');
+  const keepC = cat.value;
+  cat.innerHTML = EXPENSE_CATEGORIES.map(function (c) {
+    return '<option value="' + c + '">' + escHtml(t(CATEGORY_KEY[c])) + '</option>';
+  }).join('');
+  if (keepC) cat.value = keepC;
+
+  const sel = document.getElementById('expLand');
+  const keepL = sel.value;
+  sel.innerHTML = '<option value="">' + escHtml(t('allLands')) + '</option>' +
+    lands.map(function (l, i) {
+      return '<option value="' + escAttr(l.id) + '">' + escHtml(landName(l, i)) + '</option>';
+    }).join('');
+  if (keepL) sel.value = keepL;
+}
+
+function addExpense() {
+  const date = document.getElementById('expDate').value;
+  const amount = num(document.getElementById('expAmount').value);
+  if (!date) { showToast(t('pickDate')); return; }
+  if (amount <= 0) { showToast(t('enterAmount')); return; }
+
+  const landId = document.getElementById('expLand').value;
+  const i = lands.findIndex(function (l) { return l.id === landId; });
+  expenses.unshift({
+    id: Date.now().toString(), date: date,
+    category: document.getElementById('expCategory').value,
+    landId: landId, landName: (i >= 0) ? landName(lands[i], i) : '',
+    amount: amount, note: document.getElementById('expNote').value.trim()
+  });
+  saveExpenses();
+  document.getElementById('expAmount').value = '';
+  document.getElementById('expNote').value = '';
+  renderExpenses();
+  renderReports();
+  showToast(t('expenseSaved'));
+}
+
+function deleteExpense(id) {
+  if (!window.confirm(t('deleteConfirm'))) return;
+  expenses = expenses.filter(function (e) { return e.id !== id; });
+  saveExpenses();
+  renderExpenses();
+  renderReports();
+  showToast(t('expenseDeleted'));
+}
+
+function renderExpenses() {
+  renderExpenseForm();
+
+  const income = totalIncome(), spent = totalExpenses(), final = income - spent;
+  document.getElementById('finIncome').textContent = fmtMoney(income);
+  document.getElementById('finExpenses').textContent = fmtMoney(spent);
+  document.getElementById('finProfit').textContent = fmtMoney(final);
+
+  // category breakdown as bars
+  const byCat = {};
+  expenses.forEach(function (e) { byCat[e.category] = (byCat[e.category] || 0) + num(e.amount); });
+  const cats = EXPENSE_CATEGORIES.filter(function (c) { return byCat[c]; })
+    .sort(function (a, b) { return byCat[b] - byCat[a]; });
+  const box = document.getElementById('expByCategory');
+  if (cats.length === 0) {
+    box.innerHTML = '<div class="stat"><span class="k">' + escHtml(t('totalExpenses')) + '</span><span class="v red">' + fmtMoney(0) + '</span></div>';
+  } else {
+    const max = byCat[cats[0]];
+    box.innerHTML = cats.map(function (c) {
+      return '<div class="bar"><span class="lbl">' + escHtml(t(CATEGORY_KEY[c])) + '</span>' +
+        '<span class="track"><span class="fill" style="width:' + (byCat[c] / max * 100) + '%;background:var(--red)"></span></span>' +
+        '<span class="val">' + fmtMoney(byCat[c]) + '</span></div>';
+    }).join('') +
+    '<div class="stat" style="border-top:1.5px solid var(--border-strong);margin-top:6px">' +
+    '<span class="k">' + escHtml(t('totalExpenses')) + '</span><span class="v red">' + fmtMoney(spent) + '</span></div>';
+  }
+
+  const list = document.getElementById('expensesList');
+  if (expenses.length === 0) {
+    list.innerHTML = '<div class="empty"><span class="ico">🧾</span>' + escHtml(t('noExpenses')) + '</div>';
+    return;
+  }
+  const sorted = expenses.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  list.innerHTML = sorted.map(function (e) {
+    const where = e.landName ? escHtml(e.landName) : escHtml(t('allLands'));
+    const note = e.note ? ' · ' + escHtml(e.note) : '';
+    return '<div class="exp">' +
+      '<div class="body"><div class="name">' + escHtml(t(CATEGORY_KEY[e.category] || 'catOther')) + '</div>' +
+      '<div class="meta">' + escHtml(formatDate(e.date)) + ' · ' + where + note + '</div></div>' +
+      '<div class="amt">' + fmtMoney(num(e.amount)) + '</div>' +
+      '<button class="x" onclick="deleteExpense(\'' + e.id + '\')" aria-label="' + escAttr(t('delete')) + '">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+/* ── reports ───────────────────────────────── */
+function reportYearGroups() {
+  const m = {};
+  harvests.forEach(function (h) {
+    const y = (h.date || '').slice(0, 4) || '—';
+    if (!m[y]) m[y] = { year: y, count: 0, fresh: 0, dried: 0, value: 0 };
+    m[y].count++; m[y].fresh += num(h.totalFresh); m[y].dried += num(h.totalDried); m[y].value += harvestValue(h);
+  });
+  return Object.values(m).sort(function (a, b) { return a.year < b.year ? 1 : -1; });
+}
+
+function renderReports() {
+  const c = document.getElementById('reportsContent');
+  if (harvests.length === 0 && expenses.length === 0) {
+    c.innerHTML = '<div class="card"><div class="empty"><span class="ico">📊</span>' +
+      escHtml(t('noYields')) + '<br>' + escHtml(t('noYieldsSub')) + '</div></div>';
+    return;
+  }
+
+  const income = totalIncome(), spent = totalExpenses(), profit = income - spent;
+  let html = '<div class="card"><div class="card-title">' + escHtml(t('profitSummary')) + '</div>' +
+    '<div class="card-body" style="padding-top:6px;padding-bottom:6px">' +
+    '<div class="stat"><span class="k">' + escHtml(t('income')) + '</span><span class="v green">' + fmtMoney(income) + '</span></div>' +
+    '<div class="stat"><span class="k">' + escHtml(t('totalExpenses')) + '</span><span class="v red">' + fmtMoney(spent) + '</span></div>' +
+    '</div><div class="headline"><span class="k">' + escHtml(t('finalAmount')) + '</span><span class="v">' + fmtMoney(profit) + '</span></div></div>';
+
+  if (harvests.length > 0) {
+    const years = reportYearGroups();
+    html += '<div class="card"><div class="card-title">' + escHtml(t('yearSummary')) + '</div><div class="card-body">' +
+      years.map(function (y) {
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
+          '<div class="rec-top"><span class="rec-name">' + escHtml(y.year) + '</span>' +
+          '<span class="rec-meta">' + y.count + ' ' + escHtml(t('harvestsWord')) + '</span></div>' +
+          '<div class="stat" style="padding:5px 0;border:none"><span class="k">' + escHtml(t('colDried')) + '</span><span class="v amber">' + fmtKg(y.dried) + '</span></div>' +
+          '<div class="stat" style="padding:5px 0;border:none"><span class="k">' + escHtml(t('colValue')) + '</span><span class="v green">' + fmtMoney(y.value) + '</span></div>' +
+        '</div>';
+      }).join('') + '</div></div>';
+
+    const maxD = Math.max.apply(null, harvests.map(function (h) { return num(h.totalDried); }).concat([1]));
+    html += '<div class="card"><div class="card-title">' + escHtml(t('driedByYield')) + '</div><div class="card-body">' +
+      harvests.map(function (h) {
+        return '<div class="bar"><span class="lbl">' + escHtml(yieldLabel(h.number)) + '</span>' +
+          '<span class="track"><span class="fill amber" style="width:' + (num(h.totalDried) / maxD * 100) + '%"></span></span>' +
+          '<span class="val">' + fmtNum(num(h.totalDried)) + '</span></div>';
+      }).join('') + '</div></div>';
+
+  }
+
+  c.innerHTML = html;
+}
+
+/* ── calculator ────────────────────────────── */
+let calcCur = '0', calcPrev = null, calcPending = null, calcFresh = false;
+const OP_SIGN = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+function openCalc() { document.getElementById('calcOverlay').classList.add('on'); }
+function closeCalc() { document.getElementById('calcOverlay').classList.remove('on'); }
+
+function formatCalcNum(s) {
+  if (s === '' || s === '-' || s === 'Error') return s || '0';
+  const neg = s.charAt(0) === '-';
+  const body = neg ? s.slice(1) : s;
+  const p = body.split('.');
+  const g = Number(p[0] === '' ? '0' : p[0]).toLocaleString('en-IN');
+  return (neg ? '-' : '') + (p.length > 1 ? g + '.' + p[1] : g);
+}
+
+function calcShow() {
+  document.getElementById('calcMain').textContent = formatCalcNum(calcCur);
+  document.getElementById('calcSub').innerHTML =
+    (calcPending && calcPrev !== null) ? (formatCalcNum(String(calcPrev)) + ' ' + OP_SIGN[calcPending]) : '&nbsp;';
+}
+
+function calcDigit(d) {
+  if (calcCur === 'Error') calcClear();
+  if (calcFresh || calcCur === '0') { calcCur = d; calcFresh = false; }
+  else if (calcCur.replace(/[-.]/g, '').length < 12) calcCur += d;
+  calcShow();
+}
+function calcDot() {
+  if (calcCur === 'Error') calcClear();
+  if (calcFresh) { calcCur = '0.'; calcFresh = false; }
+  else if (calcCur.indexOf('.') === -1) calcCur += '.';
+  calcShow();
+}
+function calcCompute(a, b, op) {
+  if (op === '+') return a + b;
+  if (op === '-') return a - b;
+  if (op === '*') return a * b;
+  if (op === '/') return b === 0 ? null : a / b;
+  return b;
+}
+function calcRound(n) { return Math.round(n * 1e10) / 1e10; }
+function calcOp(op) {
+  if (calcCur === 'Error') return;
+  const cur = parseFloat(calcCur);
+  if (calcPending !== null && calcPrev !== null && !calcFresh) {
+    const r = calcCompute(calcPrev, cur, calcPending);
+    if (r === null) { calcCur = 'Error'; calcPrev = null; calcPending = null; calcShow(); return; }
+    calcPrev = calcRound(r); calcCur = String(calcPrev);
+  } else calcPrev = cur;
+  calcPending = op; calcFresh = true; calcShow();
+}
+function calcEquals() {
+  if (calcCur === 'Error' || calcPending === null || calcPrev === null) return;
+  const r = calcCompute(calcPrev, parseFloat(calcCur), calcPending);
+  calcCur = (r === null) ? 'Error' : String(calcRound(r));
+  calcPrev = null; calcPending = null; calcFresh = true; calcShow();
+}
+function calcClear() { calcCur = '0'; calcPrev = null; calcPending = null; calcFresh = false; calcShow(); }
+function calcBack() {
+  if (calcCur === 'Error') { calcClear(); return; }
+  if (calcFresh) return;
+  calcCur = calcCur.length > 1 ? calcCur.slice(0, -1) : '0';
+  if (calcCur === '-' || calcCur === '') calcCur = '0';
+  calcShow();
+}
+function calcSign() {
+  if (calcCur === 'Error' || calcCur === '0') return;
+  calcCur = calcCur.charAt(0) === '-' ? calcCur.slice(1) : '-' + calcCur;
+  calcShow();
+}
+function calcPercent() {
+  if (calcCur === 'Error') return;
+  const cur = parseFloat(calcCur);
+  calcCur = (calcPrev !== null && (calcPending === '+' || calcPending === '-'))
+    ? String(calcRound(calcPrev * cur / 100))
+    : String(calcRound(cur / 100));
+  calcFresh = false;
+  calcShow();
+}
+
+document.addEventListener('keydown', function (e) {
+  if (!document.getElementById('calcOverlay').classList.contains('on')) return;
+  const k = e.key;
+  if (k >= '0' && k <= '9') { calcDigit(k); e.preventDefault(); }
+  else if (k === '.') { calcDot(); e.preventDefault(); }
+  else if ('+-*/'.indexOf(k) >= 0 && k.length === 1) { calcOp(k); e.preventDefault(); }
+  else if (k === 'Enter' || k === '=') { calcEquals(); e.preventDefault(); }
+  else if (k === 'Backspace') { calcBack(); e.preventDefault(); }
+  else if (k === 'Escape') closeCalc();
+  else if (k === 'c' || k === 'C' || k === 'Delete') calcClear();
+  else if (k === '%') { calcPercent(); e.preventDefault(); }
+});
+
+/* ── toast ─────────────────────────────────── */
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { el.classList.remove('on'); }, 2400);
+}
+
+/* ── init ──────────────────────────────────── */
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('harvestDate').value = today;
+document.getElementById('expDate').value = today;
+document.getElementById('globalRateInput').value = globalRate;
+document.getElementById('priceInput').value = price;
+applyTheme();
+applyLanguage();
+calcShow();
+
+/* ── PWA ───────────────────────────────────── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  const b = document.getElementById('installBtn');
+  if (b) b.style.display = 'inline-flex';
+});
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.finally(function () {
+    deferredPrompt = null;
+    const b = document.getElementById('installBtn');
+    if (b) b.style.display = 'none';
+  });
+}
+window.addEventListener('appinstalled', function () {
+  const b = document.getElementById('installBtn');
+  if (b) b.style.display = 'none';
+});
+</script>
+
+</body>
+</html>

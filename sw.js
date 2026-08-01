@@ -1,5 +1,5 @@
 // Service worker for Areca Farm Tracker — network-first, falls back to cache when offline.
-const CACHE = 'areca-v6';
+const CACHE = 'areca-v7';
 const ASSETS = ['.', 'index.html', 'manifest.webmanifest', 'icon.svg'];
 
 self.addEventListener('install', function (e) {

@@ -483,6 +483,59 @@
   nav button.on { color: var(--accent); }
   nav button.on .ni { background: var(--accent-soft); }
 
+  /* ── Sign in ──────────────────────────────── */
+  .auth-modal { align-items: center; padding: 18px; }
+  .auth {
+    width: 100%;
+    max-width: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .auth-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 20px 16px;
+    background: var(--header);
+    color: #fff;
+  }
+  .auth-head .mark { font-size: 30px; }
+  .auth-title { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .auth-sub { font-size: 13.5px; opacity: 0.82; margin-top: 2px; }
+  .auth-body { padding: 18px; }
+  .auth-msg {
+    display: none;
+    font-size: 14px;
+    padding: 11px 13px;
+    border-radius: 9px;
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  .auth-msg.show { display: block; }
+  .auth-msg.err  { background: var(--neg-soft); color: var(--neg); }
+  .auth-msg.ok   { background: var(--pos-soft); color: var(--pos); }
+  .auth-msg.info { background: var(--surface-2); color: var(--muted); }
+  .auth-skip {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 10px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* sync state on the header chip */
+  #syncBtn.syncing { opacity: 0.55; }
+  #syncBtn.pending { color: var(--accent); }
+  #syncBtn.err     { color: var(--neg); }
+
   /* ── Calculator ───────────────────────────── */
   .modal {
     display: none;
@@ -575,6 +628,7 @@
     <h1 id="appTitle">Areca Farm Tracker</h1>
   </div>
   <div class="hbtns">
+    <button class="hbtn" id="syncBtn" onclick="syncNow(true)" title="Sync" style="display:none">☁</button>
     <button class="hbtn" id="installBtn" style="display:none" onclick="installApp()" title="Install">⬇</button>
     <button class="hbtn" onclick="openCalc()" aria-label="Calculator" title="Calculator">🧮</button>
     <button class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="Theme">🌙</button>
@@ -730,6 +784,33 @@
   </button>
 </nav>
 
+<!-- ══ SIGN IN ══ -->
+<div class="modal auth-modal" id="authOverlay">
+  <div class="auth">
+    <div class="auth-head">
+      <span class="mark">🌴</span>
+      <div>
+        <div class="auth-title" id="authTitle">Sign in</div>
+        <div class="auth-sub" id="authSub">Keep your records safe online</div>
+      </div>
+    </div>
+    <div class="auth-body">
+      <div class="field">
+        <label data-i18n="emailLabel">Email</label>
+        <input type="email" id="authEmail" autocomplete="username" placeholder="name@example.com">
+      </div>
+      <div class="field">
+        <label data-i18n="passwordLabel">Password</label>
+        <input type="password" id="authPass" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <div class="auth-msg" id="authMsg"></div>
+      <button class="btn btn-primary btn-block" id="authGo" onclick="authSubmit()" data-i18n="signIn">Sign in</button>
+      <button class="btn btn-quiet btn-block" style="margin-top:9px" id="authSwap" onclick="authToggleMode()" data-i18n="createAccount">Create a new account</button>
+      <button class="auth-skip" onclick="authSkip()" data-i18n="useOffline">Use without signing in</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="calcOverlay" onclick="if(event.target===this)closeCalc()">
   <div class="calc" role="dialog" aria-modal="true">
     <div class="calc-bar">
@@ -829,6 +910,31 @@ const i18n = {
     profitSummary: 'Money Summary',
     calculator: 'Calculator',
     installApp: 'Install',
+    signInTitle: 'Sign in',
+    signInSub: 'Keep your records safe online',
+    signUpTitle: 'Create account',
+    signUpSub: 'Your records will be saved online',
+    emailLabel: 'Email',
+    passwordLabel: 'Password',
+    signIn: 'Sign in',
+    signUp: 'Create account',
+    createAccount: 'Create a new account',
+    haveAccount: 'I already have an account',
+    useOffline: 'Use without signing in',
+    signOut: 'Sign out',
+    signOutConfirm: 'Sign out? Records already synced stay safe online.',
+    needEmail: 'Enter your email and password.',
+    passShort: 'Password must be at least 6 characters.',
+    badLogin: 'Wrong email or password.',
+    signedIn: 'Signed in',
+    accountMade: 'Account created — signed in',
+    checkEmail: 'Check your email to confirm the account, then sign in.',
+    offlineMode: 'Working offline — records stay on this phone only',
+    syncing: 'Syncing…',
+    syncedOk: 'All records saved online',
+    syncPending: 'Changes waiting to upload',
+    syncFail: 'Could not reach the server — will retry',
+    noNet: 'No internet — saved on this phone',
   },
   kn: {
     appTitle: 'ಅಡಿಕೆ ಫಾರ್ಮ್ ಟ್ರ್ಯಾಕರ್',
@@ -890,6 +996,31 @@ const i18n = {
     profitSummary: 'ಹಣದ ಸಾರಾಂಶ',
     calculator: 'ಕ್ಯಾಲ್ಕುಲೇಟರ್',
     installApp: 'ಇನ್‌ಸ್ಟಾಲ್',
+    signInTitle: 'ಸೈನ್ ಇನ್',
+    signInSub: 'ನಿಮ್ಮ ದಾಖಲೆಗಳನ್ನು ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಸುರಕ್ಷಿತವಾಗಿಡಿ',
+    signUpTitle: 'ಖಾತೆ ತೆರೆಯಿರಿ',
+    signUpSub: 'ನಿಮ್ಮ ದಾಖಲೆಗಳು ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಉಳಿಯುತ್ತವೆ',
+    emailLabel: 'ಇಮೇಲ್',
+    passwordLabel: 'ಪಾಸ್‌ವರ್ಡ್',
+    signIn: 'ಸೈನ್ ಇನ್',
+    signUp: 'ಖಾತೆ ತೆರೆಯಿರಿ',
+    createAccount: 'ಹೊಸ ಖಾತೆ ತೆರೆಯಿರಿ',
+    haveAccount: 'ನನ್ನ ಬಳಿ ಈಗಾಗಲೇ ಖಾತೆ ಇದೆ',
+    useOffline: 'ಸೈನ್ ಇನ್ ಮಾಡದೆ ಬಳಸಿ',
+    signOut: 'ಸೈನ್ ಔಟ್',
+    signOutConfirm: 'ಸೈನ್ ಔಟ್ ಮಾಡುವುದೇ? ಈಗಾಗಲೇ ಅಪ್‌ಲೋಡ್ ಆದ ದಾಖಲೆಗಳು ಸುರಕ್ಷಿತ.',
+    needEmail: 'ಇಮೇಲ್ ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ.',
+    passShort: 'ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ 6 ಅಕ್ಷರ ಇರಬೇಕು.',
+    badLogin: 'ಇಮೇಲ್ ಅಥವಾ ಪಾಸ್‌ವರ್ಡ್ ತಪ್ಪಾಗಿದೆ.',
+    signedIn: 'ಸೈನ್ ಇನ್ ಆಗಿದೆ',
+    accountMade: 'ಖಾತೆ ತೆರೆಯಲಾಗಿದೆ — ಸೈನ್ ಇನ್ ಆಗಿದೆ',
+    checkEmail: 'ಖಾತೆ ದೃಢೀಕರಿಸಲು ಇಮೇಲ್ ನೋಡಿ, ನಂತರ ಸೈನ್ ಇನ್ ಮಾಡಿ.',
+    offlineMode: 'ಆಫ್‌ಲೈನ್ — ದಾಖಲೆಗಳು ಈ ಫೋನ್‌ನಲ್ಲಿ ಮಾತ್ರ',
+    syncing: 'ಸಿಂಕ್ ಆಗುತ್ತಿದೆ…',
+    syncedOk: 'ಎಲ್ಲಾ ದಾಖಲೆಗಳು ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಉಳಿದಿವೆ',
+    syncPending: 'ಬದಲಾವಣೆಗಳು ಅಪ್‌ಲೋಡ್‌ಗೆ ಕಾಯುತ್ತಿವೆ',
+    syncFail: 'ಸರ್ವರ್ ಸಿಗಲಿಲ್ಲ — ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಲಾಗುವುದು',
+    noNet: 'ಇಂಟರ್ನೆಟ್ ಇಲ್ಲ — ಈ ಫೋನ್‌ನಲ್ಲಿ ಉಳಿಸಲಾಗಿದೆ',
   }
 };
 
@@ -927,9 +1058,13 @@ function valueOf(driedKg, pricePer100) { return driedKg / 100 * num(pricePer100)
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function escAttr(s) { return escHtml(s).replace(/"/g, '&quot;'); }
 
-function saveLands() { localStorage.setItem('areca_lands', JSON.stringify(lands)); }
-function saveHarvests() { localStorage.setItem('areca_harvests', JSON.stringify(harvests)); }
-function saveExpenses() { localStorage.setItem('areca_expenses', JSON.stringify(expenses)); }
+// set while pulling from the server, so incoming data isn't re-flagged as a local change
+let applyingRemote = false;
+function touched() { if (!applyingRemote && typeof markDirty === 'function') markDirty(); }
+
+function saveLands() { localStorage.setItem('areca_lands', JSON.stringify(lands)); touched(); }
+function saveHarvests() { localStorage.setItem('areca_harvests', JSON.stringify(harvests)); touched(); }
+function saveExpenses() { localStorage.setItem('areca_expenses', JSON.stringify(expenses)); touched(); }
 
 function ordinal(n) {
   if (currentLang === 'kn') return n + 'ನೇ';
@@ -1031,6 +1166,7 @@ function refreshDried(id, dried) {
 function updateGlobalRate(el) {
   globalRate = el.value;
   localStorage.setItem('areca_rate', globalRate);
+  touched();
   lands.forEach(function (l) {
     refreshDried(l.id, num(l.fresh) * num(globalRate) / 100);
   });
@@ -1040,6 +1176,7 @@ function updateGlobalRate(el) {
 function updatePrice(el) {
   price = el.value;
   localStorage.setItem('areca_price', price);
+  touched();
   updateLandTotals();
 }
 
@@ -1071,6 +1208,7 @@ function addLand() {
 
 function deleteLand(id) {
   if (!window.confirm(t('deleteLandConfirm'))) return;
+  tomb('lands', id);
   lands = lands.filter(function (l) { return l.id !== id; });
   saveLands();
   renderLands();
@@ -1140,6 +1278,7 @@ function saveHarvestEdit(id) {
 function deleteHarvest(id) {
   if (!window.confirm(t('deleteConfirm'))) return;
   editingHarvests.delete(id);
+  tomb('harvests', id);
   harvests = harvests.filter(function (h) { return h.id !== id; });
   harvests.forEach(function (h, i) { h.number = i + 1; });
   saveHarvests();
@@ -1249,6 +1388,7 @@ function addExpense() {
 
 function deleteExpense(id) {
   if (!window.confirm(t('deleteConfirm'))) return;
+  tomb('expenses', id);
   expenses = expenses.filter(function (e) { return e.id !== id; });
   saveExpenses();
   renderExpenses();
@@ -1316,7 +1456,7 @@ function renderReports() {
   const c = document.getElementById('reportsContent');
   if (harvests.length === 0 && expenses.length === 0) {
     c.innerHTML = '<div class="card"><div class="empty"><span class="ico">📊</span>' +
-      escHtml(t('noYields')) + '<br>' + escHtml(t('noYieldsSub')) + '</div></div>';
+      escHtml(t('noYields')) + '<br>' + escHtml(t('noYieldsSub')) + '</div></div>' + accountCard();
     return;
   }
 
@@ -1349,7 +1489,25 @@ function renderReports() {
 
   }
 
-  c.innerHTML = html;
+  c.innerHTML = html + accountCard();
+}
+
+function accountCard() {
+  if (!cloudConfigured) return '';
+  if (!signedIn()) {
+    return '<div class="card"><div class="card-body">' +
+      '<div class="rec-meta" style="margin-bottom:12px">' + escHtml(t('offlineMode')) + '</div>' +
+      '<button class="btn btn-primary btn-block" onclick="showAuth()">' + escHtml(t('signIn')) + '</button>' +
+    '</div></div>';
+  }
+  const email = (session.user && session.user.email) ? session.user.email : '';
+  return '<div class="card"><div class="card-body">' +
+    '<div class="rec-top"><span class="rec-name" style="font-size:15px">' + escHtml(email) + '</span></div>' +
+    '<div class="rec-meta" style="margin-bottom:12px">' + escHtml(dirty ? t('syncPending') : t('syncedOk')) + '</div>' +
+    '<div class="rec-actions">' +
+      '<button class="btn btn-quiet btn-sm" onclick="syncNow(true)">' + escHtml(t('syncing').replace('…','')) + '</button>' +
+      '<button class="btn-link" onclick="signOut()">' + escHtml(t('signOut')) + '</button>' +
+    '</div></div></div>';
 }
 
 /* ── calculator ────────────────────────────── */
@@ -1456,6 +1614,291 @@ function showToast(msg) {
   toastTimer = setTimeout(function () { el.classList.remove('on'); }, 2400);
 }
 
+/* ══════════════════════════════════════════════
+   Cloud storage (Supabase) — offline first.
+   localStorage stays the source of truth for the
+   screen, so the app works with no signal; changes
+   are pushed up whenever the phone is online.
+   ══════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://hkpwiwflxtujfoeenizz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrcHdpd2ZseHR1amZvZWVuaXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1ODQ5MTMsImV4cCI6MjEwMTE2MDkxM30.e1HPDcLtGMCsAAENL-P8Fee0Dq97dXAhXae0rAS0eog';
+const cloudConfigured = SUPABASE_URL.indexOf('supabase.co') > 0;
+
+let session = JSON.parse(localStorage.getItem('areca_session') || 'null');
+let tombs   = JSON.parse(localStorage.getItem('areca_tombs') || '{"lands":[],"harvests":[],"expenses":[]}');
+let dirty   = localStorage.getItem('areca_dirty') === '1';
+let syncing = false;
+let authMode = 'in'; // 'in' | 'up'
+
+function saveSession() {
+  if (session) localStorage.setItem('areca_session', JSON.stringify(session));
+  else localStorage.removeItem('areca_session');
+}
+function saveTombs() { localStorage.setItem('areca_tombs', JSON.stringify(tombs)); }
+function markDirty() {
+  dirty = true;
+  localStorage.setItem('areca_dirty', '1');
+  updateSyncChip();
+  scheduleSync();
+}
+function clearDirty() { dirty = false; localStorage.setItem('areca_dirty', '0'); }
+function tomb(kind, id) { if (tombs[kind].indexOf(id) < 0) { tombs[kind].push(id); saveTombs(); } }
+
+function signedIn() { return !!(session && session.access_token); }
+
+/* ── raw calls ─────────────────────────────── */
+async function sbAuth(path, body) {
+  const r = await fetch(SUPABASE_URL + '/auth/v1/' + path, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(function () { return {}; });
+  return { ok: r.ok, status: r.status, data: data };
+}
+
+async function sbRest(path, opts) {
+  opts = opts || {};
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: opts.method || 'GET',
+    headers: Object.assign({
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + session.access_token,
+      'Content-Type': 'application/json'
+    }, opts.headers || {}),
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if (r.status === 401) throw { unauthorised: true };
+  if (!r.ok) throw new Error('rest ' + r.status + ' ' + (await r.text().catch(function () { return ''; })));
+  if (opts.method && opts.method !== 'GET' && !(opts.headers && opts.headers.Prefer)) return null;
+  return r.json().catch(function () { return null; });
+}
+
+async function refreshSession() {
+  if (!session || !session.refresh_token) return false;
+  const res = await sbAuth('token?grant_type=refresh_token', { refresh_token: session.refresh_token });
+  if (!res.ok || !res.data.access_token) return false;
+  session = res.data;
+  saveSession();
+  return true;
+}
+
+/* ── sign in / up / out ────────────────────── */
+function authMsg(text, kind) {
+  const el = document.getElementById('authMsg');
+  el.textContent = text;
+  el.className = 'auth-msg show ' + (kind || 'info');
+}
+function authClearMsg() { document.getElementById('authMsg').className = 'auth-msg'; }
+
+function showAuth() { document.getElementById('authOverlay').classList.add('on'); applyAuthText(); }
+function hideAuth() { document.getElementById('authOverlay').classList.remove('on'); }
+
+function applyAuthText() {
+  const up = authMode === 'up';
+  document.getElementById('authTitle').textContent = t(up ? 'signUpTitle' : 'signInTitle');
+  document.getElementById('authSub').textContent   = t(up ? 'signUpSub' : 'signInSub');
+  document.getElementById('authGo').textContent    = t(up ? 'signUp' : 'signIn');
+  document.getElementById('authSwap').textContent  = t(up ? 'haveAccount' : 'createAccount');
+  document.getElementById('authPass').setAttribute('autocomplete', up ? 'new-password' : 'current-password');
+}
+
+function authToggleMode() {
+  authMode = (authMode === 'in') ? 'up' : 'in';
+  authClearMsg();
+  applyAuthText();
+}
+
+function authSkip() {
+  localStorage.setItem('areca_skipauth', '1');
+  hideAuth();
+  showToast(t('offlineMode'));
+}
+
+async function authSubmit() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPass').value;
+  if (!email || !pass) { authMsg(t('needEmail'), 'err'); return; }
+  if (pass.length < 6) { authMsg(t('passShort'), 'err'); return; }
+
+  const btn = document.getElementById('authGo');
+  btn.disabled = true;
+  authMsg(t('syncing'), 'info');
+
+  try {
+    let res;
+    if (authMode === 'up') {
+      res = await sbAuth('signup', { email: email, password: pass });
+      if (res.ok && !res.data.access_token) {   // e-mail confirmation is on
+        authMsg(t('checkEmail'), 'ok');
+        authMode = 'in'; applyAuthText();
+        btn.disabled = false;
+        return;
+      }
+    } else {
+      res = await sbAuth('token?grant_type=password', { email: email, password: pass });
+    }
+
+    if (!res.ok || !res.data.access_token) {
+      const m = (res.data && (res.data.msg || res.data.error_description || res.data.message)) || t('badLogin');
+      authMsg(m, 'err');
+      btn.disabled = false;
+      return;
+    }
+
+    session = res.data;
+    saveSession();
+    localStorage.removeItem('areca_skipauth');
+    document.getElementById('authPass').value = '';
+    hideAuth();
+    showToast(t(authMode === 'up' ? 'accountMade' : 'signedIn'));
+    updateSyncChip();
+    await syncNow();
+  } catch (e) {
+    authMsg(t('syncFail'), 'err');
+  }
+  btn.disabled = false;
+}
+
+function signOut() {
+  if (!window.confirm(t('signOutConfirm'))) return;
+  session = null;
+  saveSession();
+  localStorage.removeItem('areca_skipauth');
+  updateSyncChip();
+  showAuth();
+}
+
+/* ── mapping local <-> rows ────────────────── */
+function rowsOutLands()    { return lands.map(function (l, i) { return { id: l.id, user_id: session.user.id, name: l.name || '', position: i }; }); }
+function rowsOutHarvests() {
+  return harvests.map(function (h) {
+    return { id: h.id, user_id: session.user.id, number: h.number, harvest_date: h.date,
+             rate: num(h.rate), price: num(h.price), entries: h.entries,
+             total_fresh: num(h.totalFresh), total_dried: num(h.totalDried), total_value: num(harvestValue(h)) };
+  });
+}
+function rowsOutExpenses() {
+  return expenses.map(function (e) {
+    return { id: e.id, user_id: session.user.id, expense_date: e.date, category: e.category,
+             land_id: e.landId || null, land_name: e.landName || '', amount: num(e.amount), note: e.note || '' };
+  });
+}
+
+/* ── push / pull ───────────────────────────── */
+async function pushAll() {
+  const upsert = { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' } };
+  const L = rowsOutLands(), H = rowsOutHarvests(), X = rowsOutExpenses();
+  if (L.length) await sbRest('lands',    Object.assign({ body: L }, upsert));
+  if (H.length) await sbRest('harvests', Object.assign({ body: H }, upsert));
+  if (X.length) await sbRest('expenses', Object.assign({ body: X }, upsert));
+
+  await sbRest('settings', Object.assign({
+    body: [{ user_id: session.user.id, rate: String(globalRate || ''), price: String(price || '') }]
+  }, upsert));
+
+  // apply deletions
+  for (const kind of ['lands', 'harvests', 'expenses']) {
+    if (!tombs[kind].length) continue;
+    const list = tombs[kind].map(function (id) { return '"' + id + '"'; }).join(',');
+    await sbRest(kind + '?id=in.(' + encodeURIComponent(list) + ')', { method: 'DELETE' });
+  }
+  tombs = { lands: [], harvests: [], expenses: [] };
+  saveTombs();
+}
+
+async function pullAll() {
+  applyingRemote = true;
+  try { await pullAllInner(); } finally { applyingRemote = false; }
+}
+
+async function pullAllInner() {
+  const [L, H, X, S] = await Promise.all([
+    sbRest('lands?select=*&order=position.asc'),
+    sbRest('harvests?select=*&order=harvest_date.asc'),
+    sbRest('expenses?select=*&order=expense_date.desc'),
+    sbRest('settings?select=*')
+  ]);
+
+  if (L && L.length) {
+    const drafts = {};
+    lands.forEach(function (l) { drafts[l.id] = l.fresh; });   // keep the un-saved harvest being typed
+    lands = L.map(function (r) { return { id: r.id, name: r.name || '', fresh: drafts[r.id] || '' }; });
+    saveLands();
+  }
+  if (H) {
+    harvests = H.map(function (r) {
+      return { id: r.id, number: r.number, date: r.harvest_date, rate: num(r.rate), price: num(r.price),
+               entries: r.entries || [], totalFresh: num(r.total_fresh), totalDried: num(r.total_dried),
+               totalValue: num(r.total_value) };
+    });
+    harvests.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    harvests.forEach(function (h, i) { h.number = i + 1; });
+    saveHarvests();
+  }
+  if (X) {
+    expenses = X.map(function (r) {
+      return { id: r.id, date: r.expense_date, category: r.category, landId: r.land_id || '',
+               landName: r.land_name || '', amount: num(r.amount), note: r.note || '' };
+    });
+    saveExpenses();
+  }
+  if (S && S.length) {
+    if (S[0].rate)  { globalRate = S[0].rate;  localStorage.setItem('areca_rate', globalRate); }
+    if (S[0].price) { price      = S[0].price; localStorage.setItem('areca_price', price); }
+    const g = document.getElementById('globalRateInput'), p = document.getElementById('priceInput');
+    if (g) g.value = globalRate;
+    if (p) p.value = price;
+  }
+}
+
+/* ── the sync entry point ──────────────────── */
+let syncTimer = null;
+function scheduleSync() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(function () { syncNow(); }, 1200);
+}
+
+async function syncNow(manual) {
+  if (!cloudConfigured || !signedIn() || syncing) return;
+  if (!navigator.onLine) { updateSyncChip(); if (manual) showToast(t('noNet')); return; }
+
+  syncing = true;
+  updateSyncChip();
+  try {
+    const hadLocal = dirty || tombs.lands.length || tombs.harvests.length || tombs.expenses.length;
+    if (hadLocal) await pushAll();
+    await pullAll();
+    if (!hadLocal) await pushAll();   // first run on a fresh phone: seed the server
+    clearDirty();
+    renderLands(); renderExpenses(); renderDetails(); renderReports();
+    if (manual) showToast(t('syncedOk'));
+  } catch (e) {
+    if (e && e.unauthorised) {
+      const ok = await refreshSession();
+      syncing = false;
+      if (ok) return syncNow(manual);
+      showAuth();
+      return;
+    }
+    if (manual) showToast(t('syncFail'));
+  }
+  syncing = false;
+  updateSyncChip();
+}
+
+function updateSyncChip() {
+  const b = document.getElementById('syncBtn');
+  if (!b) return;
+  if (!cloudConfigured || !signedIn()) { b.style.display = 'none'; return; }
+  b.style.display = 'inline-flex';
+  b.className = 'hbtn' + (syncing ? ' syncing' : (dirty ? ' pending' : ''));
+  b.textContent = syncing ? '⟳' : (dirty ? '☁' : '✓');
+  b.title = syncing ? t('syncing') : (dirty ? t('syncPending') : t('syncedOk'));
+}
+
+window.addEventListener('online', function () { syncNow(); });
+
 /* ── init ──────────────────────────────────── */
 const today = new Date().toISOString().split('T')[0];
 document.getElementById('harvestDate').value = today;
@@ -1465,6 +1908,16 @@ document.getElementById('priceInput').value = price;
 applyTheme();
 applyLanguage();
 calcShow();
+
+// cloud: show the sign-in card on first open, then keep records in step
+if (cloudConfigured) {
+  updateSyncChip();
+  if (signedIn()) {
+    syncNow();
+  } else if (localStorage.getItem('areca_skipauth') !== '1') {
+    showAuth();
+  }
+}
 
 /* ── PWA ───────────────────────────────────── */
 if ('serviceWorker' in navigator) {

@@ -1,6 +1,6 @@
 {
-  "name": "Areca Farm Tracker",
-  "short_name": "Areca Tracker",
+  "name": "DGR Areca",
+  "short_name": "DGR Areca",
   "description": "Record areca harvest yields per land, with dried-areca and value calculation.",
   "start_url": ".",
   "scope": ".",

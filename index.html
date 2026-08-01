@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#2f6b33">
+<meta name="theme-color" content="#141820">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,52 +13,56 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>Areca Farm Tracker</title>
 <style>
+  /* ══ Dark is the default look ══
+     Cool near-black ground, gold accent (the colour of dried areca). */
   :root {
-    /* neutrals carry a faint green bias so they sit with the accent */
-    --bg:            #f4f6f1;
-    --surface:       #ffffff;
-    --surface-2:     #fafbf8;
-    --border:        #e2e7dc;
-    --border-strong: #cfd6c8;
-    --text:          #171a15;
-    --muted:         #5f665a;
-    --faint:         #6e7568;
+    --bg:            #0b0d10;
+    --surface:       #14171c;
+    --surface-2:     #1b1f26;
+    --border:        #262b33;
+    --border-strong: #38404c;
+    --text:          #eef1f5;
+    --muted:         #a3acba;
+    --faint:         #8d97a6;
 
-    --green:      #2f6b33;
-    --green-soft: #eaf2e8;
-    --amber:      #a86400;
-    --amber-soft: #fdf1de;
-    --red:        #b3352c;
-    --red-soft:   #fdecea;
-    --blue:       #1f5f9e;
+    --accent:      #f0a830;   /* gold — brand + dried areca */
+    --accent-soft: #2b2213;
+    --accent-ink:  #14171c;   /* text that sits on gold */
 
-    --focus: rgba(47,107,51,0.18);
-    --shadow: 0 1px 2px rgba(23,26,21,0.05), 0 2px 10px rgba(23,26,21,0.04);
-    --nav-bg: #ffffff;
+    --pos:      #5cc98a;      /* money in  */
+    --pos-soft: #16281f;
+    --neg:      #f2766c;      /* money out */
+    --neg-soft: #2c1a18;
+
+    --focus:  rgba(240,168,48,0.26);
+    --shadow: 0 1px 2px rgba(0,0,0,0.5), 0 6px 20px rgba(0,0,0,0.34);
+    --nav-bg: #101318;
+    --header:  linear-gradient(150deg, #1a1f27 0%, #141820 100%);
   }
 
-  :root[data-theme="dark"] {
-    --bg:            #14171310;
-    --bg:            #131612;
-    --surface:       #1c201a;
-    --surface-2:     #222720;
-    --border:        #2f352c;
-    --border-strong: #3d453a;
-    --text:          #e8ece6;
-    --muted:         #a2aa9c;
-    --faint:         #98a092;
+  :root[data-theme="light"] {
+    --bg:            #f5f6f8;
+    --surface:       #ffffff;
+    --surface-2:     #fafbfc;
+    --border:        #e4e7ec;
+    --border-strong: #cbd1d9;
+    --text:          #14171c;
+    --muted:         #5a626e;
+    --faint:         #6b7280;
 
-    --green:      #7cc47f;
-    --green-soft: #1d2a1c;
-    --amber:      #e0a458;
-    --amber-soft: #2c2317;
-    --red:        #e8837a;
-    --red-soft:   #2e1d1b;
-    --blue:       #7fb2e0;
+    --accent:      #9a6510;
+    --accent-soft: #fdf3e0;
+    --accent-ink:  #ffffff;
 
-    --focus: rgba(124,196,127,0.22);
-    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 2px 12px rgba(0,0,0,0.25);
-    --nav-bg: #181c17;
+    --pos:      #1d7a4c;
+    --pos-soft: #e8f5ee;
+    --neg:      #b5352b;
+    --neg-soft: #fdecea;
+
+    --focus:  rgba(154,101,16,0.20);
+    --shadow: 0 1px 2px rgba(20,23,28,0.05), 0 2px 10px rgba(20,23,28,0.05);
+    --nav-bg: #ffffff;
+    --header:  linear-gradient(150deg, #2c333e 0%, #1f242c 100%);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -85,7 +89,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: var(--green);
+    background: var(--header);
     color: #fff;
     padding: 14px 16px;
     padding-top: calc(14px + env(safe-area-inset-top));
@@ -93,8 +97,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    border-bottom: 1px solid var(--border);
   }
-  :root[data-theme="dark"] header { background: #1d2a1c; color: var(--text); }
+  .brand .mark { filter: saturate(1.1); }
 
   .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .brand .mark { font-size: 21px; flex-shrink: 0; }
@@ -122,7 +127,6 @@
     align-items: center;
     justify-content: center;
   }
-  :root[data-theme="dark"] .hbtn { background: rgba(255,255,255,0.09); }
   .hbtn:active { background: rgba(255,255,255,0.3); }
 
   /* ── Page & cards ─────────────────────────── */
@@ -156,8 +160,8 @@
     height: 24px;
     flex-shrink: 0;
     border-radius: 50%;
-    background: var(--green);
-    color: #fff;
+    background: var(--accent);
+    color: var(--accent-ink);
     font-size: 13px;
     font-weight: 700;
     display: inline-flex;
@@ -165,7 +169,6 @@
     justify-content: center;
     font-variant-numeric: tabular-nums;
   }
-  :root[data-theme="dark"] .card-title .step { color: #10160f; }
   .card-title + .card-body { padding-top: 14px; }
 
   .hint { font-size: 14.5px; color: var(--muted); margin-bottom: 14px; }
@@ -194,7 +197,7 @@
   }
   input:focus, select:focus {
     outline: none;
-    border-color: var(--green);
+    border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--focus);
     background: var(--surface);
   }
@@ -243,8 +246,7 @@
   .btn:active { transform: scale(0.985); }
   .btn-block { width: 100%; }
 
-  .btn-primary { background: var(--green); color: #fff; }
-  :root[data-theme="dark"] .btn-primary { background: var(--green); color: #10160f; }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
   .btn-quiet {
     background: var(--surface-2);
     border-color: var(--border-strong);
@@ -253,14 +255,14 @@
   .btn-link {
     background: none;
     border: none;
-    color: var(--red);
+    color: var(--neg);
     font-size: 15px;
     font-weight: 600;
     min-height: 44px;
     padding: 8px 12px;
     border-radius: 8px;
   }
-  .btn-link:active { background: var(--red-soft); }
+  .btn-link:active { background: var(--neg-soft); }
   .btn-sm { min-height: 44px; padding: 9px 15px; font-size: 15px; }
 
   @media (hover: hover) {
@@ -285,21 +287,20 @@
     white-space: nowrap;
     letter-spacing: -0.01em;
   }
-  .v.green { color: var(--green); }
-  .v.amber { color: var(--amber); }
-  .v.red   { color: var(--red); }
+  .v.green { color: var(--pos); }    /* money in   */
+  .v.amber { color: var(--accent); } /* dried areca */
+  .v.red   { color: var(--neg); }    /* money out  */
 
   /* the single most important figure on a page */
   .headline {
-    background: var(--green);
-    color: #fff;
+    background: var(--accent);
+    color: var(--accent-ink);
     padding: 18px;
     display: flex;
     flex-direction: column;
     gap: 4px;
   }
-  :root[data-theme="dark"] .headline { background: #1d2a1c; }
-  .headline .k { font-size: 14.5px; opacity: 0.92; font-weight: 600; }
+  .headline .k { font-size: 14.5px; opacity: 0.86; font-weight: 600; }
   .headline .v {
     font-size: 34px;
     font-weight: 700;
@@ -331,7 +332,7 @@
   }
   .land-name input:focus {
     box-shadow: none;
-    border-bottom-color: var(--green);
+    border-bottom-color: var(--accent);
     background: none;
   }
   .land-name .x {
@@ -344,7 +345,7 @@
     border-radius: 8px;
     flex-shrink: 0;
   }
-  .land-name .x:active { background: var(--red-soft); color: var(--red); }
+  .land-name .x:active { background: var(--neg-soft); color: var(--neg); }
 
   /* fresh input  →  dried result, relationship shown explicitly */
   .land-calc {
@@ -363,7 +364,7 @@
     display: block;
     font-size: 20px;
     font-weight: 700;
-    color: var(--amber);
+    color: var(--accent);
     font-variant-numeric: tabular-nums;
     line-height: 1.15;
   }
@@ -420,7 +421,7 @@
   .exp .amt {
     font-size: 17px;
     font-weight: 700;
-    color: var(--red);
+    color: var(--neg);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -428,15 +429,15 @@
     background: none; border: none; color: var(--faint);
     width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; font-size: 16px;
   }
-  .exp .x:active { background: var(--red-soft); color: var(--red); }
+  .exp .x:active { background: var(--neg-soft); color: var(--neg); }
 
   /* bars */
   .bar { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
   .bar + .bar { border-top: 1px solid var(--border); }
   .bar .lbl { width: 92px; font-size: 14px; color: var(--muted); flex-shrink: 0; }
   .bar .track { flex: 1; height: 10px; border-radius: 5px; background: var(--border); overflow: hidden; }
-  .bar .fill { height: 100%; border-radius: 5px; background: var(--green); }
-  .bar .fill.amber { background: var(--amber); }
+  .bar .fill { height: 100%; border-radius: 5px; background: var(--accent); }
+  .bar .fill.amber { background: var(--accent); }
   .bar .val {
     width: 92px; text-align: right; font-size: 14.5px; font-weight: 700;
     font-variant-numeric: tabular-nums; flex-shrink: 0;
@@ -479,34 +480,10 @@
     transition: background 0.18s;
   }
   nav .nt { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  nav button.on { color: var(--green); }
-  nav button.on .ni { background: var(--green-soft); }
+  nav button.on { color: var(--accent); }
+  nav button.on .ni { background: var(--accent-soft); }
 
   /* ── Calculator ───────────────────────────── */
-  .fabwrap {
-    position: fixed;
-    left: 0; right: 0;
-    bottom: calc(80px + env(safe-area-inset-bottom));
-    max-width: 560px;
-    margin: 0 auto;
-    padding-right: 16px;
-    display: flex;
-    justify-content: flex-end;
-    pointer-events: none;
-    z-index: 130;
-  }
-  .fab {
-    pointer-events: auto;
-    width: 52px; height: 52px;
-    border: none; border-radius: 16px;
-    background: var(--green);
-    color: #fff;
-    font-size: 21px;
-    box-shadow: 0 4px 14px rgba(23,40,22,0.3);
-  }
-  :root[data-theme="dark"] .fab { color: #10160f; }
-  .fab:active { transform: scale(0.94); }
-
   .modal {
     display: none;
     position: fixed; inset: 0;
@@ -555,9 +532,8 @@
   }
   .k:active { background: var(--border); transform: scale(0.96); }
   .k.f { color: var(--muted); }
-  .k.o { color: var(--green); font-size: 21px; font-weight: 700; }
-  .k.e { background: var(--green); color: #fff; border-color: transparent; }
-  :root[data-theme="dark"] .k.e { color: #10160f; }
+  .k.o { color: var(--accent); font-size: 21px; font-weight: 700; }
+  .k.e { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 
   /* ── Toast ────────────────────────────────── */
   .toast {
@@ -753,10 +729,6 @@
     <span class="ni">📊</span><span class="nt" data-i18n="reportsTab">Reports</span>
   </button>
 </nav>
-
-<div class="fabwrap">
-  <button class="fab" onclick="openCalc()" aria-label="Calculator">🧮</button>
-</div>
 
 <div class="modal" id="calcOverlay" onclick="if(event.target===this)closeCalc()">
   <div class="calc" role="dialog" aria-modal="true">
@@ -972,15 +944,15 @@ function formatDate(d) {
 }
 
 /* ── theme ─────────────────────────────────── */
-let theme = localStorage.getItem('areca_theme') ||
-  ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+// dark is the app's default look; light is opt-in
+let theme = localStorage.getItem('areca_theme') || 'dark';
 
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', theme);
   const b = document.getElementById('themeBtn');
   if (b) b.textContent = (theme === 'dark') ? '☀️' : '🌙';
   const m = document.querySelector('meta[name="theme-color"]');
-  if (m) m.setAttribute('content', theme === 'dark' ? '#1d2a1c' : '#2f6b33');
+  if (m) m.setAttribute('content', theme === 'dark' ? '#141820' : '#1f242c');
 }
 function toggleTheme() {
   theme = (theme === 'dark') ? 'light' : 'dark';
@@ -1304,7 +1276,7 @@ function renderExpenses() {
     const max = byCat[cats[0]];
     box.innerHTML = cats.map(function (c) {
       return '<div class="bar"><span class="lbl">' + escHtml(t(CATEGORY_KEY[c])) + '</span>' +
-        '<span class="track"><span class="fill" style="width:' + (byCat[c] / max * 100) + '%;background:var(--red)"></span></span>' +
+        '<span class="track"><span class="fill" style="width:' + (byCat[c] / max * 100) + '%;background:var(--neg)"></span></span>' +
         '<span class="val">' + fmtMoney(byCat[c]) + '</span></div>';
     }).join('') +
     '<div class="stat" style="border-top:1.5px solid var(--border-strong);margin-top:6px">' +
